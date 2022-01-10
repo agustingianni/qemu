@@ -54,6 +54,8 @@ QTestState *qtest_vinitf(const char *fmt, va_list ap) GCC_FMT_ATTR(1, 0);
  */
 QTestState *qtest_init(const char *extra_args);
 
+QTestState *qtest_init_without_qemu(void);
+
 /**
  * qtest_init_without_qmp_handshake:
  * @extra_args: other arguments to pass to QEMU.  CAUTION: these

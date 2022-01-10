@@ -3022,6 +3022,19 @@ foreach target : target_dirs
       'dependencies': []
     }]
   endif
+
+  goose_ss = ss.source_set()
+  goose_ss.add(files('tests/qtest/fuzz-goose-test.c'), qos)
+
+  # Build our special qemu binary for testing.
+  goose = goose_ss.apply(config_target, strict: false)
+  execs += [{
+    'name': 'qemu-goose-' + target_name,
+    'win_subsystem': 'console',
+    'sources': goose.sources(),
+    'dependencies': goose.dependencies(),
+  }]
+
   foreach exe: execs
     exe_name = exe['name']
     if targetos == 'darwin'
