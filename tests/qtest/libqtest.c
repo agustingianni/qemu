@@ -252,6 +252,92 @@ static const char *qtest_qemu_binary(void)
     return qemu_bin;
 }
 
+QTestState *qtest_init_without_qemu(void)
+{
+    QTestState *s;
+    int sock, qmpsock, i;
+    gchar *socket_path;
+    gchar *qmp_socket_path;
+    // gchar *command;
+    // const char *qemu_binary = qtest_qemu_binary();
+
+    s = g_new(QTestState, 1);
+
+    socket_path = g_strdup_printf("/tmp/qtest-goose.sock");
+    qmp_socket_path = g_strdup_printf("/tmp/qtest-goose.qmp");
+
+    /* It's possible that if an earlier test run crashed it might
+     * have left a stale unix socket lying around. Delete any
+     * stale old socket to avoid spurious test failures with
+     * tests/libqtest.c:70:init_socket: assertion failed (ret != -1): (-1 != -1)
+     */
+    unlink(socket_path);
+    unlink(qmp_socket_path);
+
+    sock = init_socket(socket_path);
+    qmpsock = init_socket(qmp_socket_path);
+
+    qtest_client_set_rx_handler(s, qtest_client_socket_recv_line);
+    qtest_client_set_tx_handler(s, qtest_client_socket_send);
+
+    qtest_add_abrt_handler(kill_qemu_hook_func, s);
+
+    // command = g_strdup_printf("exec %s "
+    //                           "-qtest unix:%s "
+    //                           "-qtest-log %s "
+    //                           "-chardev socket,path=%s,id=char0 "
+    //                           "-mon chardev=char0,mode=control "
+    //                           "-display none "
+    //                           "%s"
+    //                           " -accel qtest", qemu_binary, socket_path,
+    //                           getenv("QTEST_LOG") ? "/dev/fd/2" : "/dev/null",
+    //                           qmp_socket_path,
+    //                           extra_args ?: "");
+
+    // g_test_message("starting QEMU: %s", command);
+
+    s->pending_events = NULL;
+    s->wstatus = 0;
+    s->expected_status = 0;
+    s->qemu_pid = -1;
+
+    // s->qemu_pid = fork();
+    // if (s->qemu_pid == 0) {
+    //     if (!g_setenv("QEMU_AUDIO_DRV", "none", true)) {
+    //         exit(1);
+    //     }
+    //     execlp("/bin/sh", "sh", "-c", command, NULL);
+    //     exit(1);
+    // }
+
+    // g_free(command);
+    s->fd = socket_accept(sock);
+    if (s->fd >= 0) {
+        s->qmp_fd = socket_accept(qmpsock);
+    }
+    unlink(socket_path);
+    unlink(qmp_socket_path);
+    g_free(socket_path);
+    g_free(qmp_socket_path);
+
+    g_assert(s->fd >= 0 && s->qmp_fd >= 0);
+
+    s->rx = g_string_new("");
+    for (i = 0; i < MAX_IRQ; i++) {
+        s->irq_level[i] = false;
+    }
+
+    // if (getenv("QTEST_STOP")) {
+    //     kill(s->qemu_pid, SIGSTOP);
+    // }
+
+    /* ask endianness of the target */
+
+    // s->big_endian = qtest_query_target_endianness(s);
+
+    return s;    
+}
+
 QTestState *qtest_init_without_qmp_handshake(const char *extra_args)
 {
     QTestState *s;
