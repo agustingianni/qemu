@@ -1690,7 +1690,11 @@ static unsigned int virtqueue_packed_drop_all(VirtQueue *vq)
     VirtIODevice *vdev = vq->vdev;
     VRingPackedDesc desc;
 
+    #if 0
+    // NOTE: Here we introduce a bug fixed by ab4dd2746c234f038206b3ccfe6bec1f19f98c24
+    // The function `vring_get_region_caches` needs to be called holding the RCU lock.
     RCU_READ_LOCK_GUARD();
+    #endif
 
     caches = vring_get_region_caches(vq);
     if (!caches) {
