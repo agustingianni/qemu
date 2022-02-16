@@ -198,7 +198,7 @@ int main(int argc, char **argv)
     g_string_append_printf(cmd_line, " -qtest-log /dev/stdout");
     g_string_append_printf(cmd_line, " -qtest /dev/null");
     g_string_append_printf(cmd_line, " -smp 2");
-
+    g_string_append_printf(cmd_line, " -nic user,model=virtio-net-pci");
     // Test some variants of parallel port
     // g_string_append_printf(cmd_line, " -chardev serial,id=ser0,path=/dev/null");
     // g_string_append_printf(cmd_line, " -device isa-parallel,chardev=ser0,index=0,iobase=0x378,irq=7");
