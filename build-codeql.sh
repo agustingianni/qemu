@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 export PKG_CONFIG_PATH="/usr/local/opt/ncurses/lib/pkgconfig"
 
-pushd build-codeql
+rm -rf build
+mkdir build
+pushd build
 
 ../configure \
     --target-list=x86_64-softmmu \
@@ -32,7 +36,12 @@ pushd build-codeql
     --enable-vnc-jpeg \
     --enable-vnc-png
 
-
-codeql database create /Users/goose/work/QLDatabases/qemu.db --language=cpp --command="make" -j0
+codeql database create \
+    --threads=8 \
+    --language=cpp \
+    --command="make" \
+    --overwrite \
+    --source-root=.. \
+    /Users/goose/work/QLDatabases/qemu-$(git rev-parse HEAD).db
 
 popd
