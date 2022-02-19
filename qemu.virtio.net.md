@@ -12,7 +12,36 @@ Virtio Network Device
 
 ### VirtIONet
 
-- Contains `VirtIODevice`
+This is a virtio device. It is initialized in `virtio_net_instance_init`.
+
+```cpp
+
+class VirtIONetPCI {
+    VirtIOPCIProxy parent_obj;
+    VirtIONet vdev;
+};
+
+class VirtIODevice {
+    DeviceState parent_obj;
+    const char *name;
+    VirtQueue *vq;
+    MemoryListener listener;
+    AddressSpace *dma_as;
+}
+
+class VirtIONet: public VirtIODevice {
+    VirtIONetQueue *vqs;
+    VirtQueue *ctrl_vq;
+}
+
+static const TypeInfo virtio_net_info = {
+    .name = TYPE_VIRTIO_NET,
+    .parent = TYPE_VIRTIO_DEVICE,
+    .instance_size = sizeof(VirtIONet),
+    .instance_init = virtio_net_instance_init,
+    .class_init = virtio_net_class_init,
+};
+```
 
 ## What does the device do?
 
